@@ -14,7 +14,7 @@
 [![Developer](https://img.shields.io/badge/Developer-Lokesh-F5C84C?style=for-the-badge&logo=github&logoColor=black)](https://github.com/lokesh12dev)
 [![GitHub Profile](https://img.shields.io/badge/GitHub-lokesh12dev-181717?style=for-the-badge&logo=github)](https://github.com/lokesh12dev)
 [![Repositories](https://img.shields.io/badge/All_Repositories-lokesh12dev-0969DA?style=for-the-badge&logo=git)](https://github.com/lokesh12dev?tab=repositories)
-[![Original Work](https://img.shields.io/badge/Craftsmanship-100%25%20AB%20Coding%20%26%20Design-FF5722?style=for-the-badge)](https://github.com/lokesh12dev/movieverse)
+[![Original Work](https://img.shields.io/badge/Craftsmanship-100%25%20Handcrafted%20Coding%20%26%20Design-FF5722?style=for-the-badge)](https://github.com/lokesh12dev/movieverse)
 [![License](https://img.shields.io/badge/License-Copyright%20Lokesh-success?style=for-the-badge)](LICENSE)
 
 ---
@@ -22,8 +22,8 @@
 ### 👑 Sole Authorship & Copyright Claim
 > **IMPORTANT NOTICE:**  
 > **MOVIEVERSE** is an original creative work, system architecture, and application engineered and designed exclusively by **Lokesh**.  
-> - **100% AB Coding & Design Work:** Every line of code, UI component, 3D interaction, shader, mathematical calculation, and design aesthetic is purely handcrafted by **AB**.
-> - **Zero AI Generation:** This project was developed through dedicated human coding and creative design without AI generation. It is completely, authentically **all AB work**.
+> - **100% Handcrafted Coding & Design:** Every line of code, UI component, 3D interaction, shader, mathematical calculation, and design aesthetic is purely handcrafted by **Lokesh**.
+> - **Zero AI Generation:** This project was developed through dedicated human coding and creative design without AI generation. It is completely, authentically **all Lokesh's work**.
 > - **Exclusive Ownership:** All intellectual property, architectural thinking, design assets, and licensing rights are strictly, perpetually, and completely owned by **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)).
 
 ---
@@ -179,4 +179,4 @@ http://localhost:4300
 
 This repository and all associated assets, source code, UI/UX designs, algorithms, and documentation are the exclusive intellectual property of **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)).
 
-All design, thinking, engineering, and coding work was created solely by **AB** and **Lokesh** without AI tools. Unauthorized redistribution, cloning, or publishing under any other identity or account is strictly prohibited.
+All design, thinking, engineering, and coding work was created solely by **Lokesh** without AI tools. Unauthorized redistribution, cloning, or publishing under any other identity or account is strictly prohibited.
