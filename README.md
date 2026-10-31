@@ -24,7 +24,7 @@
 > **MOVIEVERSE** is an original creative work, system architecture, and application engineered and designed exclusively by **Lokesh (AB)**.  
 > - **100% AB Coding & Design Work:** Every line of code, UI component, 3D interaction, shader, mathematical calculation, and design aesthetic is purely handcrafted by **AB**.
 > - **Zero AI / Zero Anti-Gravity:** This project was developed through dedicated human coding and creative design without AI generation and without Anti-Gravity. It is completely, authentically **all AB work**.
-> - **Exclusive Ownership:** All intellectual property, architectural thinking, design assets, and licensing rights are strictly, perpetually, and completely owned by **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)). Any prior or third-party associations (including *alagappan567* or *ryzenate1*) are entirely unauthorized and permanently null and void.
+> - **Exclusive Ownership:** All intellectual property, architectural thinking, design assets, and licensing rights are strictly, perpetually, and completely owned by **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)).
 
 ---
 
