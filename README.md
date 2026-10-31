@@ -7,11 +7,11 @@
 </p>
 
 # 🎬 MOVIEVERSE
-### Designed, Engineered & Authored by Lokesh (AB)
+### Designed, Engineered & Authored by Lokesh
 
 **Next-Generation 3D Cinematic Movie Ticket Booking Experience**
 
-[![Developer](https://img.shields.io/badge/Developer-Lokesh%20(AB)-F5C84C?style=for-the-badge&logo=github&logoColor=black)](https://github.com/lokesh12dev)
+[![Developer](https://img.shields.io/badge/Developer-Lokesh-F5C84C?style=for-the-badge&logo=github&logoColor=black)](https://github.com/lokesh12dev)
 [![GitHub Profile](https://img.shields.io/badge/GitHub-lokesh12dev-181717?style=for-the-badge&logo=github)](https://github.com/lokesh12dev)
 [![Repositories](https://img.shields.io/badge/All_Repositories-lokesh12dev-0969DA?style=for-the-badge&logo=git)](https://github.com/lokesh12dev?tab=repositories)
 [![Original Work](https://img.shields.io/badge/Craftsmanship-100%25%20AB%20Coding%20%26%20Design-FF5722?style=for-the-badge)](https://github.com/lokesh12dev/movieverse)
@@ -21,9 +21,9 @@
 
 ### 👑 Sole Authorship & Copyright Claim
 > **IMPORTANT NOTICE:**  
-> **MOVIEVERSE** is an original creative work, system architecture, and application engineered and designed exclusively by **Lokesh (AB)**.  
+> **MOVIEVERSE** is an original creative work, system architecture, and application engineered and designed exclusively by **Lokesh**.  
 > - **100% AB Coding & Design Work:** Every line of code, UI component, 3D interaction, shader, mathematical calculation, and design aesthetic is purely handcrafted by **AB**.
-> - **Zero AI / Zero Anti-Gravity:** This project was developed through dedicated human coding and creative design without AI generation and without Anti-Gravity. It is completely, authentically **all AB work**.
+> - **Zero AI Generation:** This project was developed through dedicated human coding and creative design without AI generation. It is completely, authentically **all AB work**.
 > - **Exclusive Ownership:** All intellectual property, architectural thinking, design assets, and licensing rights are strictly, perpetually, and completely owned by **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)).
 
 ---
@@ -71,7 +71,7 @@ Whether browsing upcoming blockbusters on desktop or tapping into a 3D recliner 
 - **3D Graphics & Spatial Computing:** Three.js · React Three Fiber · WebGL Custom Shaders
 - **Motion & Micro-Interactions:** GSAP · Framer Motion · Lenis Smooth Scroll · Tailwind CSS
 - **State Architecture:** Zustand reactive state containers
-- **Assets & Identity:** Bespoke MOVIEVERSE Cinema Identity & Vector Ticket Artwork by Lokesh (AB)
+- **Assets & Identity:** Bespoke MOVIEVERSE Cinema Identity & Vector Ticket Artwork by Lokesh
 
 ---
 
@@ -166,7 +166,7 @@ http://localhost:4300
 
 ## 👤 Author, Designer & Developer
 
-**Lokesh (AB)**
+**Lokesh**
 - **GitHub:** [@lokesh12dev](https://github.com/lokesh12dev)
 - **All Repositories:** [lokesh12dev Repositories](https://github.com/lokesh12dev?tab=repositories)
 - **Location:** Chennai, India
@@ -175,8 +175,8 @@ http://localhost:4300
 
 ## 📜 License & Copyright
 
-**Copyright © 2026 Lokesh (AB). All Rights Reserved.**
+**Copyright © 2026 Lokesh. All Rights Reserved.**
 
 This repository and all associated assets, source code, UI/UX designs, algorithms, and documentation are the exclusive intellectual property of **Lokesh** ([@lokesh12dev](https://github.com/lokesh12dev)).
 
-All design, thinking, engineering, and coding work was created solely by **AB (Lokesh)** without AI tools and without Anti-Gravity. Unauthorized redistribution, cloning, or publishing under any other identity or account is strictly prohibited.
+All design, thinking, engineering, and coding work was created solely by **AB** and **Lokesh** without AI tools. Unauthorized redistribution, cloning, or publishing under any other identity or account is strictly prohibited.
