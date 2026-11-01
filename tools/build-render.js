@@ -24,6 +24,25 @@ for (const f of fs.readdirSync(SITE)) {
   if (f.endsWith(".html")) all[f] = fs.readFileSync(path.join(SITE, f), "utf8");
 }
 
+// Home speed pass: the captured HTML preloads 51 posters at once — every hint
+// races the LCP image/critical JS for first-paint bandwidth. Keep the first
+// POSTER_PRELOADS (above-the-fold carousel + first strip slots); the rest load
+// naturally as React mounts their <img> (eager/lazy already encoded in capture).
+const POSTER_PRELOADS = 6;
+const homeRaw = all["index.html"];
+{
+  const cliff = new RegExp('[ ]{2,}||$');
+  let n = 0;
+  const trimmed = homeRaw.replace(/<link rel="preload" as="image" href="\/posters\/[^"]*"[^>]*>/g, (m) => {
+    if (n++ < POSTER_PRELOADS) return m;
+    return "";
+  });
+  if (n > POSTER_PRELOADS) {
+    all["index.html"] = trimmed;
+    console.log("home preloads trimmed:", n, "->", POSTER_PRELOADS);
+  }
+}
+
 // Login payloads captured under site/files/_html/
 const LOGIN_DIR = path.join(SITE, "files", "_html");
 all["_html____login"] = fs.readFileSync(path.join(LOGIN_DIR, "_login"), "utf8");
@@ -182,3 +201,14 @@ module.exports = async (req, res) => {
 fs.mkdirSync(API, { recursive: true });
 fs.writeFileSync(path.join(API, "render-core.js"), handler);
 console.log("api/render-core.js written");
+
+// ---------------------------------------------------------------- static home
+// public/index.html = edge-cached static home (sub-100ms cold loads).
+const DASH =
+  '<script defer src="/_vercel/speed-insights/script.js"></script>' +
+  '<script defer src="/_vercel/insights/script.js"></script>';
+let staticHome = home["index.html"];
+staticHome = staticHome.replace(/<\/head>/i, DASH + "</head>");
+fs.mkdirSync(path.join(EXEC_DIR, "public"), { recursive: true });
+fs.writeFileSync(path.join(EXEC_DIR, "public", "index.html"), staticHome);
+console.log("public/index.html written:", (staticHome.length / 1024).toFixed(0), "KB");
