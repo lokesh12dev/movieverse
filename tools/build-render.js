@@ -1,42 +1,61 @@
 #!/usr/bin/env node
-// One-shot generator: derives api/_pages.js + api/render.js from server.js + site/
+// One-shot generator: derives api/_pages_*.js + api/render.js supports from server.js + site/
 // so the Vercel function stays in 1:1 sync with the local server.
+// Bundles are split per route so lambda cold starts only parse the HTML they render.
 const fs = require("fs");
 const path = require("path");
 const EXEC_DIR = path.join(__dirname, "..");
 
 const SITE = path.join(EXEC_DIR, "site");
+const API = path.join(EXEC_DIR, "api");
 
-// ---------------------------------------------------------------- pages map
-const pagePaths = [];
+function emitBundle(name, map) {
+  const out =
+    "// AUTO-GENERATED from site/ by tools/build-render.js — do not edit by hand.\n" +
+    "module.exports = " + JSON.stringify(map) + ";\n";
+  fs.writeFileSync(path.join(API, name), out);
+  console.log(
+    "api/" + name + ": " + Object.keys(map).length + " pages, " + (out.length / 1024 / 1024).toFixed(2) + " MB"
+  );
+}
+
+const all = {};
 for (const f of fs.readdirSync(SITE)) {
-  if (f.endsWith(".html")) pagePaths.push(f);
+  if (f.endsWith(".html")) all[f] = fs.readFileSync(path.join(SITE, f), "utf8");
 }
+
+// Login payloads captured under site/files/_html/
 const LOGIN_DIR = path.join(SITE, "files", "_html");
-
-const pages = {};
-for (const rel of pagePaths) {
-  const full = path.join(SITE, rel);
-  pages[rel] = fs.readFileSync(full, "utf8");
-}
-
-// Login payloads captured under site/files/_html/ (keys match api/render.js)
-pages["_html____login"] = fs.readFileSync(path.join(LOGIN_DIR, "_login"), "utf8");
-pages["_html____login__rsc_5CB68i4pnAekjehf"] = fs.readFileSync(
+all["_html____login"] = fs.readFileSync(path.join(LOGIN_DIR, "_login"), "utf8");
+all["_html____login__rsc_5CB68i4pnAekjehf"] = fs.readFileSync(
   path.join(LOGIN_DIR, "_login?_rsc=5CB68i4pnAekjehf"),
   "utf8"
 );
 
-const pagesOut =
-  "// AUTO-GENERATED from site/ by tools/build-render.js — do not edit by hand.\n" +
-  "module.exports = " + JSON.stringify(pages) + ";\n";
-fs.writeFileSync(path.join(EXEC_DIR, "api", "_pages.js"), pagesOut);
-console.log("api/_pages.js written:", Object.keys(pages).length, "pages,", (pagesOut.length / 1024 / 1024).toFixed(2), "MB");
+// ---- per-route bundles -------------------------------------------------
+const home = { "index.html": all["index.html"] };
+const bookings = { "bookings.html": all["bookings.html"] };
+const login = {
+  "_html____login": all["_html____login"],
+  "_html____login__rsc_5CB68i4pnAekjehf": all["_html____login__rsc_5CB68i4pnAekjehf"],
+};
+const book = { "book-ramayana.html": all["book-ramayana.html"] }; // booking synthesis template
+const movie = {};
+for (const k of Object.keys(all)) {
+  if (k.startsWith("movie-") && k.endsWith(".html")) movie[k] = all[k];
+}
+
+emitBundle("_pages_home.js", home);
+emitBundle("_pages_bookings.js", bookings);
+emitBundle("_pages_login.js", login);
+emitBundle("_pages_book.js", book);
+emitBundle("_pages_movie.js", movie);
+
+// SRP bundle: everything (used by tools and debug; keeps parity with older bundle)
+emitBundle("_pages.js", all);
 
 // ---------------------------------------------------------------- render.js
 const serverSource = fs.readFileSync(path.join(EXEC_DIR, "server.js"), "utf8");
-
-// Catalog + helpers: from the first line to the end of synthesizePageBlock (right before "// 1. Booking Routes" handler section started by "// ------------- Server")
 const markerSynthStart = "const MOVIES = {";
 const markerServer = "// ------------------------------------------------------------- Server";
 const idxStart = serverSource.indexOf(markerSynthStart);
@@ -44,21 +63,18 @@ const idxEnd = serverSource.indexOf(markerServer);
 if (idxStart < 0 || idxEnd < 0) throw new Error("markers not found");
 let logic = serverSource.slice(idxStart, idxEnd);
 
-// Replace the synchronous file reads inside synthesizers with page-map lookups
 logic = logic
   .split('fs.readFileSync(path.join(PAGES, "book-ramayana.html"), "utf8")')
-  .join('PAGES["book-ramayana.html"]')
+  .join('bookPages()["book-ramayana.html"]')
   .split('fs.readFileSync(path.join(PAGES, "movie-ramayana.html"), "utf8")')
-  .join('PAGES["movie-ramayana.html"]');
-
-// synthesizeMoviePage's direct file existence check
+  .join('moviePages()["movie-ramayana.html"]');
 logic = logic.replace(
   /if \(fs\.existsSync\(directPath\)\) \{\s*\n\s*return fs\.readFileSync\(directPath, "utf8"\);\s*\n\s*\}/,
-  'if (PAGES["movie-" + slug + ".html"]) {\n    return PAGES["movie-" + slug + ".html"];\n  }'
+  'if (moviePages()["movie-" + slug + ".html"]) {\n    return moviePages()["movie-" + slug + ".html"];\n  }'
 );
 logic = logic.replace(
   'const directPath = path.join(PAGES, `movie-${slug}.html`);',
-  'const directPageKey = "movie-" + slug + ".html";'
+  ""
 );
 
 // drop the plain send() defined inside the upstream logic; we bind header logic below
@@ -66,19 +82,20 @@ logic = logic.replace(
   /function send\(res, status, type, body\) \{\s*\n\s*res\.writeHead\(status, \{[^}]*\}\);\s*\n\s*res\.end\(body\);\s*\n\s*\}\s*\n/,
   ""
 );
-if (/^function send\(/m.test(logic) === false) {
-  // sanity: ensure the removal happened only when a duplicate remains below
-}
 if ((logic.match(/function send\(/g) || []).length > 0) {
   throw new Error("send() removal failed upstream");
 }
 
 const handler = `// Vercel serverless renderer for MOVIEVERSE by Lokesh — logic ported 1:1 from server.js
-const path = require("path");
 const url = require("url");
 
-// PAGES: embedded, AUTO-GENERATED page HTML maps (GET-instant, no fs at runtime)
-const PAGES = require("./_pages.js");
+// Route-scoped lazy bundles: a cold start only parses the HTML it renders.
+let HOME, BOOKINGS, LOGIN, BOOK, MOVIE;
+const homePages = () => (HOME = HOME || require("./_pages_home.js"));
+const bookingsPages = () => (BOOKINGS = BOOKINGS || require("./_pages_bookings.js"));
+const loginPages = () => (LOGIN = LOGIN || require("./_pages_login.js"));
+const bookPages = () => (BOOK = BOOK || require("./_pages_book.js"));
+const moviePages = () => (MOVIE = MOVIE || require("./_pages_movie.js"));
 
 ${logic}
 
@@ -92,6 +109,13 @@ function injectDashboard(html) {
   return html.replace(/<\\/head>/i, DASHBOARD_SNIPPET + "</head>");
 }
 
+const HTML = "text/html; charset=utf-8";
+const RSC = "text/x-component; charset=utf-8";
+
+// Edge-cached bucket for path-stable pages; no-store where query changes content
+const CACHE_HTML_EDGE = "public, s-maxage=3600, stale-while-revalidate=86400";
+const CACHE_HTML_FRESH = "no-store";
+
 function send(res, status, type, body, cacheControl) {
   const headers = {
     "content-type": type,
@@ -102,35 +126,20 @@ function send(res, status, type, body, cacheControl) {
   res.end(body);
 }
 
-const HTML = "text/html; charset=utf-8";
-const RSC = "text/x-component; charset=utf-8";
-
-// Edge-cached bucket for path-stable pages, no-store for query-personalized pages
-const CACHE_HTML_EDGE = "public, s-maxage=3600, stale-while-revalidate=86400";
-const CACHE_HTML_FRESH = "no-store";
-
 module.exports = async (req, res) => {
-  // The v_route rewrites land us on /api/render[/<route>..<slug>] with the
-  // visitor's original query string merged, and x-matched-path preserving the
-  // source pattern. Resolve route from whichever context the edge provides.
+  // The edge rewrites forward the visitor's ORIGINAL request path and merge
+  // their query string. Route purely on the original path.
   const parsed = url.parse(req.url, true);
   let routePath = decodeURIComponent(parsed.pathname || "/");
-  const matched = req.headers["x-matched-path"] ? decodeURIComponent(req.headers["x-matched-path"]) : "";
-  const routeFromMatched = matched && matched !== routePath ? matched : routePath;
-  const pathForRouting = routePath.startsWith("/api/render")
-    ? routePath
-    : routeFromMatched.startsWith("/api/render")
-      ? routeFromMatched
-      : routePath;
 
-  // strip the function prefix and expose the visiting segment
-  let seg = pathForRouting.replace(/^\\/api\\/render\\/?/, "");
-  if (seg === "") seg = "/";
-  const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1" || req.headers["rsc"] === "1";
+  let seg = routePath.replace(/^\\/api\\/render\\/?/, "").replace(/^\\//, "");
+  const segRoot = seg.split("/")[0].toLowerCase();
+  if (seg === "route") seg = "/";
+
+  const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
 
   try {
-    // Home
-    if (seg.startsWith("book/")) {
+    if (segRoot === "book") {
       const slug = seg.split("/")[1] || "ramayana";
       const pageHtml = synthesizeBookPage(slug, parsed.query);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_FRESH);
@@ -138,7 +147,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (seg.startsWith("movie/")) {
+    if (segRoot === "movie") {
       const slug = seg.split("/")[1] || "ramayana";
       const pageHtml = synthesizeMoviePage(slug);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
@@ -146,21 +155,21 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (seg.startsWith("bookings")) {
-      const pageHtml = PAGES["bookings.html"];
+    if (segRoot === "bookings") {
+      const pageHtml = bookingsPages()["bookings.html"];
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
       else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_EDGE);
       return;
     }
 
-    if (seg.startsWith("login")) {
-      if (isRsc) send(res, 200, RSC, PAGES["_html____login__rsc_5CB68i4pnAekjehf"], CACHE_HTML_FRESH);
-      else send(res, 200, HTML, injectDashboard(PAGES["_html____login"]), CACHE_HTML_FRESH);
+    if (segRoot === "login") {
+      if (isRsc) send(res, 200, RSC, loginPages()["_html____login__rsc_5CB68i4pnAekjehf"], CACHE_HTML_FRESH);
+      else send(res, 200, HTML, injectDashboard(loginPages()["_html____login"]), CACHE_HTML_FRESH);
       return;
     }
 
     // Home (root)
-    const pageHtml = PAGES["index.html"];
+    const pageHtml = homePages()["index.html"];
     if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
     else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_EDGE);
   } catch (err) {
@@ -170,6 +179,6 @@ module.exports = async (req, res) => {
 };
 `;
 
-fs.mkdirSync(path.join(EXEC_DIR, "api"), { recursive: true });
-fs.writeFileSync(path.join(EXEC_DIR, "api", "render.js"), handler);
-console.log("api/render.js written");
+fs.mkdirSync(API, { recursive: true });
+fs.writeFileSync(path.join(API, "render-core.js"), handler);
+console.log("api/render-core.js written");

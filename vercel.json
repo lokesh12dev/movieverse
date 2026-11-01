@@ -7,6 +7,12 @@
     },
     {
       "source": "/",
+      "has": [{ "type": "query", "key": "_rsc" }],
+      "destination": "/api/render/route"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "header", "key": "rsc" }],
       "destination": "/api/render/route"
     },
     {

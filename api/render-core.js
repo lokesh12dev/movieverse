@@ -1,9 +1,13 @@
 // Vercel serverless renderer for MOVIEVERSE by Lokesh — logic ported 1:1 from server.js
-const path = require("path");
 const url = require("url");
 
-// PAGES: embedded, AUTO-GENERATED page HTML maps (GET-instant, no fs at runtime)
-const PAGES = require("./_pages.js");
+// Route-scoped lazy bundles: a cold start only parses the HTML it renders.
+let HOME, BOOKINGS, LOGIN, BOOK, MOVIE;
+const homePages = () => (HOME = HOME || require("./_pages_home.js"));
+const bookingsPages = () => (BOOKINGS = BOOKINGS || require("./_pages_bookings.js"));
+const loginPages = () => (LOGIN = LOGIN || require("./_pages_login.js"));
+const bookPages = () => (BOOK = BOOK || require("./_pages_book.js"));
+const moviePages = () => (MOVIE = MOVIE || require("./_pages_movie.js"));
 
 const MOVIES = {
   "avengers-doomsday": {
@@ -347,7 +351,7 @@ function synthesizeBookPage(slug, query) {
   const theatreLabel = THEATRE_NAMES[theatre] || "Nova Cinemas: T. Nagar";
   const timeFormatted = formatTime(time);
 
-  const baseHtml = PAGES["book-ramayana.html"];
+  const baseHtml = bookPages()["book-ramayana.html"];
 
   const oldProps =
     '{\\"slug\\":\\"ramayana\\",\\"city\\":\\"chennai\\",\\"theatre\\":\\"chennai-t-nagar-0\\",\\"date\\":0,\\"time\\":\\"14:20\\",\\"format\\":\\"2D\\",\\"lang\\":\\"Hindi\\"}';
@@ -383,13 +387,13 @@ function synthesizeBookPage(slug, query) {
 }
 
 function synthesizeMoviePage(slug) {
-  const directPageKey = "movie-" + slug + ".html";
-  if (PAGES["movie-" + slug + ".html"]) {
-    return PAGES["movie-" + slug + ".html"];
+  
+  if (moviePages()["movie-" + slug + ".html"]) {
+    return moviePages()["movie-" + slug + ".html"];
   }
 
   const movie = getMovie(slug);
-  const baseHtml = PAGES["movie-ramayana.html"];
+  const baseHtml = moviePages()["movie-ramayana.html"];
 
   let out = baseHtml
     .split("K7zjRJ_0sgk")
@@ -426,6 +430,13 @@ function injectDashboard(html) {
   return html.replace(/<\/head>/i, DASHBOARD_SNIPPET + "</head>");
 }
 
+const HTML = "text/html; charset=utf-8";
+const RSC = "text/x-component; charset=utf-8";
+
+// Edge-cached bucket for path-stable pages; no-store where query changes content
+const CACHE_HTML_EDGE = "public, s-maxage=3600, stale-while-revalidate=86400";
+const CACHE_HTML_FRESH = "no-store";
+
 function send(res, status, type, body, cacheControl) {
   const headers = {
     "content-type": type,
@@ -436,30 +447,19 @@ function send(res, status, type, body, cacheControl) {
   res.end(body);
 }
 
-const HTML = "text/html; charset=utf-8";
-const RSC = "text/x-component; charset=utf-8";
-
-// Edge-cached bucket for path-stable pages, no-store for query-personalized pages
-const CACHE_HTML_EDGE = "public, s-maxage=3600, stale-while-revalidate=86400";
-const CACHE_HTML_FRESH = "no-store";
-
 module.exports = async (req, res) => {
   // The edge rewrites forward the visitor's ORIGINAL request path and merge
-  // their query string with any rewrite-injected params (verified empirically
-  // on the live edge with _debug=1). Route purely on the original path.
+  // their query string. Route purely on the original path.
   const parsed = url.parse(req.url, true);
   let routePath = decodeURIComponent(parsed.pathname || "/");
 
-  // Normalize: either a visitor path ("/movie/x") or the raw function path ("/api/render/<seg>")
   let seg = routePath.replace(/^\/api\/render\/?/, "").replace(/^\//, "");
-  // drop any explicit destination marker segment ("route")
   const segRoot = seg.split("/")[0].toLowerCase();
   if (seg === "route") seg = "/";
 
   const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
 
   try {
-    // Booking seat picker: /book/<slug>?city&theatre&time&format&lang&date
     if (segRoot === "book") {
       const slug = seg.split("/")[1] || "ramayana";
       const pageHtml = synthesizeBookPage(slug, parsed.query);
@@ -468,7 +468,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (seg.startsWith("movie/")) {
+    if (segRoot === "movie") {
       const slug = seg.split("/")[1] || "ramayana";
       const pageHtml = synthesizeMoviePage(slug);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
@@ -476,21 +476,21 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (seg.startsWith("bookings")) {
-      const pageHtml = PAGES["bookings.html"];
+    if (segRoot === "bookings") {
+      const pageHtml = bookingsPages()["bookings.html"];
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
       else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_EDGE);
       return;
     }
 
-    if (seg.startsWith("login")) {
-      if (isRsc) send(res, 200, RSC, PAGES["_html____login__rsc_5CB68i4pnAekjehf"], CACHE_HTML_FRESH);
-      else send(res, 200, HTML, injectDashboard(PAGES["_html____login"]), CACHE_HTML_FRESH);
+    if (segRoot === "login") {
+      if (isRsc) send(res, 200, RSC, loginPages()["_html____login__rsc_5CB68i4pnAekjehf"], CACHE_HTML_FRESH);
+      else send(res, 200, HTML, injectDashboard(loginPages()["_html____login"]), CACHE_HTML_FRESH);
       return;
     }
 
     // Home (root)
-    const pageHtml = PAGES["index.html"];
+    const pageHtml = homePages()["index.html"];
     if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
     else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_EDGE);
   } catch (err) {
