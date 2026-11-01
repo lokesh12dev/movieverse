@@ -458,20 +458,6 @@ module.exports = async (req, res) => {
 
   const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
 
-  // Deployment-time context debugging (temporary)
-  if (parsed.query["_debug"] === "1") {
-    send(res, 200, "application/json; charset=utf-8", JSON.stringify({
-      url: req.url,
-      path: routePath,
-      seg,
-      matchedPath: req.headers["x-matched-path"],
-      forwardedHost: req.headers["x-forwarded-host"],
-      query: parsed.query,
-      method: req.method,
-    }, null, 2));
-    return;
-  }
-
   try {
     // Booking seat picker: /book/<slug>?city&theatre&time&format&lang&date
     if (segRoot === "book") {

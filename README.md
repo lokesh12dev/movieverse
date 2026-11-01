@@ -171,25 +171,21 @@ http://localhost:4300
 
 **Production URL:** https://movieverse-ticket-booking.vercel.app
 
-The repository is connected to the Vercel project `movieverse-ticket-booking` (team *Lokesh-online*):
+The repository is connected to the Vercel project `movieverse-ticket-booking` and `movieverse` (team *Lokesh-online*):
 
-- **Every push to `main` automatically deploys to production.** No manual steps — commit in this repository, push, and Vercel rebuilds and ships the new build live within seconds.
-- Static 3D assets (`/_next/static/immutable/*` chunks, fonts, posters, textures, models) are served from **Vercel's global edge CDN with immutable year-long caching**.
-- Dynamic pages (`/`, `/movie/:slug`, `/book/:slug`, `/bookings`, `/login` including RSC payload navigation) are produced by `api/render.js` — a serverless renderer carrying the exact synthesis logic of `server.js` — and edge-cached (`s-maxage` + `stale-while-revalidate`).
-- **Speed Insights** and **Web Analytics** instrumentation is embedded in every served page; visit the Speed Insights and Analytics tabs in the Vercel dashboard for real performance RUM data.
+- **Every push to `main` automatically deploys to production.** Commit and push from here — Vercel rebuilds and ships live within seconds. No manual step, no CLI, no dashboard visit needed.
+- The **`public/` directory is Vercel's static output** (served at the site root): `next-assets/` (hydrated React/Turbopack chunks, fonts), `posters/`, `textures/`, `models/` and favicons are delivered from Vercel's **global edge CDN** with immutable year-long caching for hashed assets.
+- A `/next-assets:...` rewrite keeps every original `/_next/...` asset URL intact for the React hydration runtime.
+- Dynamic pages — `/`, `/movie/:slug`, `/book/:slug?...`, `/bookings`, `/login`, including RSC navigation payloads (`text/x-component`) — are produced by **`api/render/[route].js`**, the serverless renderer carrying the exact synthesis logic of `server.js`, and are edge-cached (`s-maxage` + `stale-while-revalidate`).
+- **Speed Insights** and **Web Analytics** instrumentation is embedded in every served page; check the Speed Insights and Analytics tabs in the Vercel dashboard for real visitor vitals.
 
-To regenerate `api/_pages.js` after editing anything under `site/`:
-
-```bash
-node tools/build-render.js
-```
-
-### Commit → live, every time
+After upgrading anything under `site/files/`, refresh the served static layout and let the push deploy it:
 
 ```bash
-git add -A
-git commit -m "Your upgrade"
-git push            # deploys to https://movieverse-ticket-booking.vercel.app automatically
+bash build.sh          # rsyncs site/files → public/ (served tree)
+node tools/build-render.js   # rebuilds api/_pages.js with updated page HTML
+
+git add -A && git commit -m "Upgrade" && git push
 ```
 
 ---
