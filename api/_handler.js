@@ -445,22 +445,29 @@ const CACHE_HTML_FRESH = "no-store";
 
 module.exports = async (req, res) => {
   // The v_route rewrites land us on /api/render[/<route>..<slug>] with the
-  // visitor's original query string merged, and x-matched-path preserving the
-  // source pattern. Resolve route from whichever context the edge provides.
+  // visitor's original query string merged. Debug mode surfaces the raw edge context.
   const parsed = url.parse(req.url, true);
   let routePath = decodeURIComponent(parsed.pathname || "/");
-  const matched = req.headers["x-matched-path"] ? decodeURIComponent(req.headers["x-matched-path"]) : "";
-  const routeFromMatched = matched && matched !== routePath ? matched : routePath;
-  const pathForRouting = routePath.startsWith("/api/render")
-    ? routePath
-    : routeFromMatched.startsWith("/api/render")
-      ? routeFromMatched
-      : routePath;
 
   // strip the function prefix and expose the visiting segment
-  let seg = pathForRouting.replace(/^\/api\/render\/?/, "");
+  let seg = routePath.replace(/^\/api\/render\/?/, "");
   if (seg === "") seg = "/";
-  const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1" || req.headers["rsc"] === "1";
+
+  const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
+
+  // Deployment-time context debugging (temporary)
+  if (parsed.query["_debug"] === "1") {
+    send(res, 200, "application/json; charset=utf-8", JSON.stringify({
+      url: req.url,
+      path: routePath,
+      seg,
+      matchedPath: req.headers["x-matched-path"],
+      forwardedHost: req.headers["x-forwarded-host"],
+      query: parsed.query,
+      method: req.method,
+    }, null, 2));
+    return;
+  }
 
   try {
     // Home
