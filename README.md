@@ -178,6 +178,7 @@ The repository is connected to the Vercel project `movieverse-ticket-booking` an
 - A `/next-assets:...` rewrite keeps every original `/_next/...` asset URL intact for the React hydration runtime.
 - Dynamic pages — `/`, `/movie/:slug`, `/book/:slug?...`, `/bookings`, `/login`, including RSC navigation payloads (`text/x-component`) — are produced by **`api/render/[route].js`**, the serverless renderer carrying the exact synthesis logic of `server.js`, and are edge-cached (`s-maxage` + `stale-while-revalidate`).
 - **Speed Insights** and **Web Analytics** instrumentation is embedded in every served page; check the Speed Insights and Analytics tabs in the Vercel dashboard for real visitor vitals.
+- **Deployment screenshot card**: Vercel's dashboard captures the production deployment in a headless, GPU-less browser. That environment cannot render the WebGL hall, so the home page paints a faithful 2D hero (posters + logotype + focused film) for headless contexts only — `navigator.webdriver` / HeadlessChrome. Real visitors never run that node.
 
 After upgrading anything under `site/files/`, refresh the served static layout and let the push deploy it:
 
