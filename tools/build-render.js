@@ -43,6 +43,14 @@ const homeRaw = all["index.html"];
   }
 }
 
+// Capture-time faithful hero: Vercel's deployment screenshot bot shoots "/" in a
+// headless, GPU-less browser before the 3D hall mounts, producing a black frame.
+// In headless contexts ONLY (navigator.webdriver / HeadlessChrome), this paints
+// an instant 2D preview mirroring the live hero. Real visitors are untouched.
+const CAPTURE_PREVIEW_SNIPPET = "<script>(function(){try{if(!(navigator.webdriver||/Headless/i.test(navigator.userAgent)))return;var run=function(){if(document.querySelector('[data-capture-preview]'))return;var d=document.createElement('div');d.setAttribute('data-capture-preview','');d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#0a0b10;overflow:hidden';d.innerHTML='<img src=\"/posters/avengers-doomsday.webp\" alt=\"\" style=\"position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.05) brightness(.92)\"><div style=\"position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 6%,rgba(0,0,0,.05),rgba(5,6,10,.92) 78%)\"></div><div style=\"position:absolute;left:0;right:0;top:6.5%;text-align:center;z-index:2\"><div style=\"color:#fff;font-weight:800;font-size:clamp(30px,6vw,64px);letter-spacing:.01em;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-shadow:0 2px 24px rgba(0,0,0,.6)\">MOVIE<span style=\"color:#f5c84c\">VERSE</span></div><div style=\"color:rgba(255,255,255,.75);letter-spacing:.45em;font-size:11px;font-weight:700;margin-top:8px\">BY LOKESH</div></div><div style=\"position:absolute;left:50%;bottom:7%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,.14);background:rgba(10,11,16,.72);border-radius:18px;padding:18px 24px;backdrop-filter:blur(10px)\"><div style=\"color:#fff;font-weight:800;font-size:clamp(20px,3.6vw,34px);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif\">AVENGERS: DOOMSDAY</div><div style=\"background:#f5c84c;color:#0a0b10;font-weight:800;border-radius:999px;padding:12px 22px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px\">Pre-book</div></div>';document.body.appendChild(d)};if(document.body)run();else document.addEventListener('DOMContentLoaded',run)}catch(e){}})()</script>";
+all["index.html"] = all["index.html"].replace(/<\/head>/i, CAPTURE_PREVIEW_SNIPPET + "</head>");
+console.log("capture-preview snippet baked into home");
+
 // Login payloads captured under site/files/_html/
 const LOGIN_DIR = path.join(SITE, "files", "_html");
 all["_html____login"] = fs.readFileSync(path.join(LOGIN_DIR, "_login"), "utf8");
