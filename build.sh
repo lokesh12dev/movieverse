@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
-# MOVIEVERSE by Lokesh — Vercel build step.
-# Materializes the static edge output (dist/) from the captured site assets.
+# MOVIEVERSE by Lokesh — the static edge layout is committed at the repository root.
+# The Vercel deployment itself needs no build step: files are served as-is.
+# Run this after you upgrade anything under site/files/ to refresh the root layout:
+#
+#   bash build.sh
 set -euo pipefail
 cd "$(dirname "$0")"
 
-rm -rf dist
-mkdir -p dist
+# Static tree mirrors the live URL paths: /_next, /posters, /textures, /models, /favicon…
+rsync -a --exclude '_html' --exclude 'favicon.ico?*' site/files/ ./
 
-# Static 3D/asset tree mirrors its live URL paths: /_next, /posters, /textures, /models, /favicon…
-cp -R site/files/. dist/
-
-# The login RSC artifacts are handled by the renderer function; skip them.
-rm -rf dist/_html
-
-echo "dist/ ready: $(find dist -type f | wc -l | tr -d ' ') files, $(du -sh dist | cut -f1)"
+echo "Root static tree refreshed: $(find _next posters textures models -type f 2>/dev/null | wc -l | tr -d ' ') asset files"

@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash build.sh",
-  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/",
@@ -26,46 +24,6 @@
     {
       "source": "/book/:slug",
       "destination": "/api/render/route"
-    },
-    {
-      "source": "/_next/:path*",
-      "destination": "/site/files/_next/:path*"
-    },
-    {
-      "source": "/posters/:path*",
-      "destination": "/site/files/posters/:path*"
-    },
-    {
-      "source": "/textures/:path*",
-      "destination": "/site/files/textures/:path*"
-    },
-    {
-      "source": "/models/:path*",
-      "destination": "/site/files/models/:path*"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/site/files/favicon.ico"
-    },
-    {
-      "source": "/favicon.png",
-      "destination": "/site/files/favicon.png"
-    },
-    {
-      "source": "/icon.png",
-      "destination": "/site/files/icon.png"
-    },
-    {
-      "source": "/logo.png",
-      "destination": "/site/files/logo.png"
-    },
-    {
-      "source": "/cinema.png",
-      "destination": "/site/files/cinema.png"
-    },
-    {
-      "source": "/movie-ticket.png",
-      "destination": "/site/files/movie-ticket.png"
     }
   ],
   "headers": [
