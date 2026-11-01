@@ -28,7 +28,7 @@
 
 ---
 
-![MOVIEVERSE Showcase](screenshots/home.png)
+![MOVIEVERSE 3D Hero Carousel](screenshots/hero-3d-carousel.png)
 
 </div>
 
@@ -44,24 +44,28 @@ Whether browsing upcoming blockbusters on desktop or tapping into a 3D recliner 
 
 ## ✨ Core Highlights & Features
 
-- **🌀 3D Cylindrical Panorama Carousel:** A curved virtual ring of cinema screens supporting touch swipe, mouse drag, momentum deceleration, and dynamic focal spotlighting.
-- **🪑 Real-Time 3D Cinema Hall Seat Picker:** Fully rendered 3D auditorium built with Three.js and WebGL. Switch effortlessly between camera presets (*Overview*, *Balcony*, *From Stage*, *Bird's Eye*), or preview the exact sightline to the big screen from any selected chair.
+- **🌀 3D Cylindrical Panorama Carousel:** A curved virtual ring of cinema screens supporting touch swipe, mouse drag, momentum deceleration, and dynamic focal spotlighting with authentic high-resolution movie posters (*Avengers: Doomsday*, *Demon Slayer: Infinity Castle*, *Toxic*, *Varanasi*, *Spider-Man: Beyond Spider-Verse*).
+- **🪑 Real-Time 3D Cinema Hall Seat Picker:** Fully rendered 3D auditorium built with Three.js and WebGL. Switch effortlessly between camera presets (*Overview*, *Balcony*, *From Stage*, *Bird's Eye*, *Tour*), or preview the exact sightline to the big screen from any selected chair.
 - **🎯 "✦ Best Seats" Smart Selection:** Proprietary heuristic algorithm calculating viewing distance, center sweet-spot acoustic scores, and recliner pairing rules to deliver optimal seat suggestions instantly.
 - **🎬 Trailer-First Movie Hub:** Immersive fullscreen video backdrops, dynamic mood grading, detailed cast/crew carousels, and localized show schedules.
 - **🍿 Complete End-to-End Booking Lifecycle:** Seamless step-by-step flow: Movie Selection ➜ Theatre & Showtime ➜ 3D Seats ➜ Gourmet Snacks & Concessions ➜ Order Summary ➜ Secure Payment ➜ High-Resolution Dynamic QR Ticket saved to *My Tickets*.
+- **⚡ 100% Self-Contained Local Server:** Ultra-fast local server providing instant RSC streaming, zero-latency 3D GLTF asset delivery, and offline-capable seat selection.
 - **📱 Mobile-First 60 FPS Performance:** Hand-tuned animations and responsive layouts engineered specifically for iPhone Safari, Android Chrome, and modern high-refresh displays.
 
 ---
 
 ## 📸 Visual Showcase
 
-| 🎟 Now Showing Portal | 🎥 Movie Details & Media |
+| 🎟 3D Hero Carousel & Spotlight | ⏳ Premieres & Pre-Bookings (6 Blockbusters) |
 |:---:|:---:|
-| ![Now showing](screenshots/now-showing.png) | ![Movie page](screenshots/movie.png) |
+| ![3D Hero Carousel](screenshots/hero-3d-carousel.png) | ![Premieres Showcase](screenshots/premieres-showcase.png) |
 
-| 🪑 Interactive 3D Seat Hall | 📱 High-Performance Mobile UI |
+| 🪑 Interactive 3D Cinema Auditorium | 🎥 Movie Trailer & Showtimes Hub |
 |:---:|:---:|
-| ![3D seats](screenshots/seats-3d.png) | <img src="screenshots/mobile.png" width="280" alt="Mobile UI" /> |
+| ![3D Seats Auditorium](screenshots/cinema-seats-3d.png) | ![Movie Detail & Trailer](screenshots/movie-experience.png) |
+
+### 🎞 Celluloid Filmstrip Experience
+![Celluloid Experience](screenshots/celluloid-strip.png)
 
 ---
 
@@ -69,6 +73,7 @@ Whether browsing upcoming blockbusters on desktop or tapping into a 3D recliner 
 
 - **Core Framework:** Next.js · React · TypeScript
 - **3D Graphics & Spatial Computing:** Three.js · React Three Fiber · WebGL Custom Shaders
+- **3D Assets & Textures:** Custom glTF 2.0 `seat.glb` binary model + Procedural Acoustic Velour, Wood Slat, and Hessian Weave PBR Textures
 - **Motion & Micro-Interactions:** GSAP · Framer Motion · Lenis Smooth Scroll · Tailwind CSS
 - **State Architecture:** Zustand reactive state containers
 - **Assets & Identity:** Bespoke MOVIEVERSE Cinema Identity & Vector Ticket Artwork by Lokesh
@@ -146,14 +151,14 @@ $$\text{Scale}_i = \text{clamp}\left(1.0 - \frac{|\theta_i|}{\pi} \cdot 0.35, 0.
 
 ## 🚀 Running Locally
 
-To run the local MOVIEVERSE mirror and server:
+To run MOVIEVERSE locally:
 
 ```bash
 # Clone the official repository
 git clone https://github.com/lokesh12dev/movieverse.git
 cd movieverse
 
-# Launch the MOVIEVERSE server
+# Launch the MOVIEVERSE self-contained server
 node reverse/server.js
 ```
 
