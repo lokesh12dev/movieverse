@@ -183,7 +183,7 @@ After upgrading anything under `site/files/`, refresh the served static layout a
 
 ```bash
 bash build.sh          # rsyncs site/files → public/ (served tree)
-node tools/build-render.js   # rebuilds api/_pages.js with updated page HTML
+node tools/build-render.js   # rebuilds api/_pages_*.js + the static public/index.html
 
 git add -A && git commit -m "Upgrade" && git push
 ```
