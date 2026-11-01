@@ -444,14 +444,17 @@ const CACHE_HTML_EDGE = "public, s-maxage=3600, stale-while-revalidate=86400";
 const CACHE_HTML_FRESH = "no-store";
 
 module.exports = async (req, res) => {
-  // The v_route rewrites land us on /api/render[/<route>..<slug>] with the
-  // visitor's original query string merged. Debug mode surfaces the raw edge context.
+  // The edge rewrites forward the visitor's ORIGINAL request path and merge
+  // their query string with any rewrite-injected params (verified empirically
+  // on the live edge with _debug=1). Route purely on the original path.
   const parsed = url.parse(req.url, true);
   let routePath = decodeURIComponent(parsed.pathname || "/");
 
-  // strip the function prefix and expose the visiting segment
-  let seg = routePath.replace(/^\/api\/render\/?/, "");
-  if (seg === "") seg = "/";
+  // Normalize: either a visitor path ("/movie/x") or the raw function path ("/api/render/<seg>")
+  let seg = routePath.replace(/^\/api\/render\/?/, "").replace(/^\//, "");
+  // drop any explicit destination marker segment ("route")
+  const segRoot = seg.split("/")[0].toLowerCase();
+  if (seg === "route") seg = "/";
 
   const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
 
@@ -470,8 +473,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Home
-    if (seg.startsWith("book/")) {
+    // Booking seat picker: /book/<slug>?city&theatre&time&format&lang&date
+    if (segRoot === "book") {
       const slug = seg.split("/")[1] || "ramayana";
       const pageHtml = synthesizeBookPage(slug, parsed.query);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_FRESH);
