@@ -1,0 +1,63 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "rewrites": [
+    { "source": "/", "destination": "/api/render" },
+    { "source": "/bookings", "destination": "/api/render/bookings" },
+    { "source": "/login", "destination": "/api/render/login" },
+    { "source": "/_login", "destination": "/api/render/login" },
+    { "source": "/movie/:slug", "destination": "/api/render/movie/:slug" },
+    { "source": "/book/:slug", "destination": "/api/render/book/:slug" },
+    { "source": "/_next/:path*", "destination": "/site/files/_next/:path*" },
+    { "source": "/posters/:path*", "destination": "/site/files/posters/:path*" },
+    { "source": "/textures/:path*", "destination": "/site/files/textures/:path*" },
+    { "source": "/models/:path*", "destination": "/site/files/models/:path*" },
+    { "source": "/favicon.ico", "destination": "/site/files/favicon.ico" },
+    { "source": "/favicon.png", "destination": "/site/files/favicon.png" },
+    { "source": "/icon.png", "destination": "/site/files/icon.png" },
+    { "source": "/logo.png", "destination": "/site/files/logo.png" },
+    { "source": "/cinema.png", "destination": "/site/files/cinema.png" },
+    { "source": "/movie-ticket.png", "destination": "/site/files/movie-ticket.png" }
+  ],
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/_next/static/immutable/media/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/models/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/textures/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/posters/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()" }
+      ]
+    }
+  ]
+}

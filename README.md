@@ -157,12 +157,39 @@ git clone https://github.com/lokesh12dev/movieverse.git
 cd movieverse
 
 # Launch the MOVIEVERSE self-contained server
-node reverse/server.js
+node server.js
 ```
 
 Open your browser and navigate to:
 ```
 http://localhost:4300
+```
+
+---
+
+## 🌍 Live on Vercel
+
+**Production URL:** https://movieverse-ticket-booking.vercel.app
+
+The repository is connected to the Vercel project `movieverse-ticket-booking` (team *Lokesh-online*):
+
+- **Every push to `main` automatically deploys to production.** No manual steps — commit in this repository, push, and Vercel rebuilds and ships the new build live within seconds.
+- Static 3D assets (`/_next/static/immutable/*` chunks, fonts, posters, textures, models) are served from **Vercel's global edge CDN with immutable year-long caching**.
+- Dynamic pages (`/`, `/movie/:slug`, `/book/:slug`, `/bookings`, `/login` including RSC payload navigation) are produced by `api/render.js` — a serverless renderer carrying the exact synthesis logic of `server.js` — and edge-cached (`s-maxage` + `stale-while-revalidate`).
+- **Speed Insights** and **Web Analytics** instrumentation is embedded in every served page; visit the Speed Insights and Analytics tabs in the Vercel dashboard for real performance RUM data.
+
+To regenerate `api/_pages.js` after editing anything under `site/`:
+
+```bash
+node tools/build-render.js
+```
+
+### Commit → live, every time
+
+```bash
+git add -A
+git commit -m "Your upgrade"
+git push            # deploys to https://movieverse-ticket-booking.vercel.app automatically
 ```
 
 ---
