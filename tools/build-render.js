@@ -31,7 +31,6 @@ for (const f of fs.readdirSync(SITE)) {
 const POSTER_PRELOADS = 6;
 const homeRaw = all["index.html"];
 {
-  const cliff = new RegExp('[ ]{2,}||$');
   let n = 0;
   const trimmed = homeRaw.replace(/<link rel="preload" as="image" href="\/posters\/[^"]*"[^>]*>/g, (m) => {
     if (n++ < POSTER_PRELOADS) return m;
@@ -106,7 +105,7 @@ logic = logic.replace(
 
 // drop the plain send() defined inside the upstream logic; we bind header logic below
 logic = logic.replace(
-  /function send\(res, status, type, body\) \{\s*\n\s*res\.writeHead\(status, \{[^}]*\}\);\s*\n\s*res\.end\(body\);\s*\n\s*\}\s*\n/,
+  /function send\(res, status, type, body[^)]*\) \{\s*\n\s*res\.writeHead\(status, \{[\s\S]*?\}\);\s*\n\s*res\.end\(body\);\s*\n\s*\}/,
   ""
 );
 if ((logic.match(/function send\(/g) || []).length > 0) {
@@ -147,6 +146,8 @@ function send(res, status, type, body, cacheControl) {
   const headers = {
     "content-type": type,
     "access-control-allow-origin": "*",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
   };
   if (cacheControl) headers["cache-control"] = cacheControl;
   res.writeHead(status, headers);
@@ -154,28 +155,39 @@ function send(res, status, type, body, cacheControl) {
 }
 
 module.exports = async (req, res) => {
-  // The edge rewrites forward the visitor's ORIGINAL request path and merge
-  // their query string. Route purely on the original path.
-  const parsed = url.parse(req.url, true);
-  let routePath = decodeURIComponent(parsed.pathname || "/");
+  // Check forwarded path from Vercel edge/rewrite headers, fallback to req.url
+  const matchedHeader =
+    req.headers["x-matched-path"] ||
+    req.headers["x-forwarded-uri"] ||
+    req.headers["x-rewrite-url"];
+  const parsed = new URL(req.url, "http://localhost");
+  const query = Object.fromEntries(parsed.searchParams);
+  let routePath = decodeURIComponent(
+    matchedHeader && !matchedHeader.startsWith("/api/render")
+      ? matchedHeader
+      : parsed.pathname || "/"
+  );
+  if (routePath.length > 1 && routePath.endsWith("/")) {
+    routePath = routePath.slice(0, -1);
+  }
 
   let seg = routePath.replace(/^\\/api\\/render\\/?/, "").replace(/^\\//, "");
+  if (seg === "route") seg = "";
   const segRoot = seg.split("/")[0].toLowerCase();
-  if (seg === "route") seg = "/";
 
-  const isRsc = req.url.includes("_rsc=") || req.headers["rsc"] === "1";
+  const isRsc = parsed.searchParams.has("_rsc") || req.headers["rsc"] === "1";
 
   try {
     if (segRoot === "book") {
-      const slug = seg.split("/")[1] || "ramayana";
-      const pageHtml = synthesizeBookPage(slug, parsed.query);
+      const slug = seg.split("/")[1] || query.slug || "ramayana";
+      const pageHtml = synthesizeBookPage(slug, query);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_FRESH);
       else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_FRESH);
       return;
     }
 
     if (segRoot === "movie") {
-      const slug = seg.split("/")[1] || "ramayana";
+      const slug = seg.split("/")[1] || query.slug || "ramayana";
       const pageHtml = synthesizeMoviePage(slug);
       if (isRsc) send(res, 200, RSC, extractRsc(pageHtml), CACHE_HTML_EDGE + ", Vary: Rsc");
       else send(res, 200, HTML, injectDashboard(pageHtml), CACHE_HTML_EDGE);
@@ -189,7 +201,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (segRoot === "login") {
+    if (segRoot === "login" || segRoot === "_login") {
       if (isRsc) send(res, 200, RSC, loginPages()["_html____login__rsc_5CB68i4pnAekjehf"], CACHE_HTML_FRESH);
       else send(res, 200, HTML, injectDashboard(loginPages()["_html____login"]), CACHE_HTML_FRESH);
       return;
@@ -209,6 +221,17 @@ module.exports = async (req, res) => {
 fs.mkdirSync(API, { recursive: true });
 fs.writeFileSync(path.join(API, "render-core.js"), handler);
 console.log("api/render-core.js written");
+
+// Also ensure api/render/index.js exists
+fs.mkdirSync(path.join(API, "render"), { recursive: true });
+fs.writeFileSync(
+  path.join(API, "render", "index.js"),
+  '// Base render route forwarder\nmodule.exports = require("../render-core.js");\n'
+);
+fs.writeFileSync(
+  path.join(API, "render", "[route].js"),
+  '// Parameterized render route forwarder\nmodule.exports = require("../render-core.js");\n'
+);
 
 // ---------------------------------------------------------------- static home
 // public/index.html = edge-cached static home (sub-100ms cold loads).

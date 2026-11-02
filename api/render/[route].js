@@ -1,2 +1,2 @@
-// Single-segment render routes: home, bookings, login (+ anything rewritten here)
+// Parameterized render route forwarder
 module.exports = require("../render-core.js");

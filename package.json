@@ -1,0 +1,33 @@
+{
+  "name": "movieverse",
+  "version": "2.0.0",
+  "description": "Next-Generation 3D Cinematic Movie Ticket Booking Experience engineered and authored by Lokesh",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "node tools/build.js && node tools/build-render.js",
+    "test": "node tools/check-health.js",
+    "lint": "node tools/check-health.js"
+  },
+  "keywords": [
+    "movieverse",
+    "cinema",
+    "booking",
+    "threejs",
+    "webgl",
+    "nextjs",
+    "react",
+    "lokesh"
+  ],
+  "author": "Lokesh (https://github.com/lokesh12dev)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lokesh12dev/movieverse.git"
+  },
+  "homepage": "https://movieverse-ticket-booking.vercel.app",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

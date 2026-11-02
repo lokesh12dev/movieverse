@@ -16,6 +16,8 @@
 [![Repositories](https://img.shields.io/badge/All_Repositories-lokesh12dev-0969DA?style=for-the-badge&logo=git)](https://github.com/lokesh12dev?tab=repositories)
 [![Craftsmanship](https://img.shields.io/badge/Craftsmanship-Dedicated%20Engineering%20%26%20Design-FF5722?style=for-the-badge)](https://github.com/lokesh12dev/movieverse)
 [![License](https://img.shields.io/badge/License-Copyright%20Lokesh-success?style=for-the-badge)](LICENSE)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Production-black?style=for-the-badge&logo=vercel)](https://movieverse-ticket-booking.vercel.app)
+[![CI Verification](https://img.shields.io/badge/CI-Passing-success?style=for-the-badge&logo=github-actions)](https://github.com/lokesh12dev/movieverse/actions)
 
 ---
 
@@ -157,12 +159,24 @@ git clone https://github.com/lokesh12dev/movieverse.git
 cd movieverse
 
 # Launch the MOVIEVERSE self-contained server
-node server.js
+npm start
+# or: node server.js
 ```
 
 Open your browser and navigate to:
 ```
 http://localhost:4300
+```
+
+---
+
+## 🧪 Testing & Verification
+
+Run the built-in production verification test suite (validates all 58 blockbusters, asset trees, RSC payloads, and serverless handlers):
+
+```bash
+npm test
+# or: node tools/check-health.js
 ```
 
 ---
@@ -183,8 +197,8 @@ The repository is connected to the Vercel project `movieverse-ticket-booking` an
 After upgrading anything under `site/files/`, refresh the served static layout and let the push deploy it:
 
 ```bash
-bash build.sh          # rsyncs site/files → public/ (served tree)
-node tools/build-render.js   # rebuilds api/_pages_*.js + the static public/index.html
+npm run build              # cross-platform static sync + route bundle generator
+npm test                   # verifies 18 production invariants
 
 git add -A && git commit -m "Upgrade" && git push
 ```
