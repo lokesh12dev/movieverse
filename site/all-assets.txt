@@ -14,7 +14,7 @@
 /_next/static/immutable/chunks/1mmbdacs1tw2u.js
 /_next/static/immutable/chunks/1vop0i8oj6p9t.js
 /_next/static/immutable/chunks/2-j5udk1eye8h.js
-/_next/static/immutable/chunks/2rghixigqxvxf.js
+/_next/static/immutable/chunks/2rghixigqxvxf.js?v=3
 /_next/static/immutable/chunks/2vja0_zguykat.js
 /_next/static/immutable/chunks/3vr-d7zy8mnmg.css
 /_next/static/immutable/chunks/turbopack-1cvbnb3nlabgn.js
