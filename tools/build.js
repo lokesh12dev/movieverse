@@ -50,7 +50,7 @@ function main() {
 
   // 3. Count assets for diagnostic output
   let assetCount = 0;
-  for (const sub of ["next-assets", "posters", "textures", "models"]) {
+  for (const sub of ["next-assets", "posters", "textures", "models", "snacks"]) {
     const targetDir = path.join(PUBLIC, sub);
     if (!fs.existsSync(targetDir)) continue;
 

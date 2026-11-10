@@ -4,10 +4,36 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
+const zlib = require("zlib");
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4300;
 const PAGES = path.join(__dirname, "site");
 const FILES = path.join(__dirname, "site", "files");
+
+// Extensions that benefit from gzip compression
+const COMPRESSIBLE = new Set([".html", ".js", ".css", ".json", ".svg", ".txt", ".xml", ".wasm"]);
+
+function maybeCompress(req, body, type) {
+  // Extract media type from content-type header (e.g., "text/html; charset=utf-8" -> "text/html")
+  const mediaType = type.split(";")[0].trim().toLowerCase();
+  // Map media type to extension
+  const typeToExt = {
+    "text/html": ".html",
+    "text/javascript": ".js",
+    "text/css": ".css",
+    "application/json": ".json",
+    "image/svg+xml": ".svg",
+    "text/plain": ".txt",
+    "application/wasm": ".wasm",
+  };
+  const ext = typeToExt[mediaType];
+  const acceptEncoding = req.headers["accept-encoding"] || "";
+  if (!ext || !COMPRESSIBLE.has(ext)) return { body, encoding: null };
+  if (acceptEncoding.includes("gzip")) {
+    return { body: zlib.gzipSync(body), encoding: "gzip" };
+  }
+  return { body, encoding: null };
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -23,6 +49,7 @@ const MIME = {
   ".woff2": "font/woff2",
   ".woff": "font/woff",
   ".txt": "text/plain; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
   ".glb": "model/gltf-binary",
   ".gltf": "model/gltf+json",
 };
@@ -841,6 +868,20 @@ const MOVIES = {
     cast: ["Ajith Kumar", "Trisha", "Arjun Sarja", "Regina Cassandra"],
     accent: "#0ea5e9",
   },
+  "amaran": {
+    slug: "amaran",
+    title: "Amaran",
+    trailerId: "r9qZ0z8j2dM",
+    runtime: "2h 35m",
+    cert: "UA",
+    rating: "8.3",
+    lang: "Tamil",
+    langs: ["Tamil", "Telugu", "Hindi", "Kannada", "Malayalam"],
+    genres: ["Action", "Drama", "Biography"],
+    director: "Raj Kumar M. Thiagarajan",
+    cast: ["Sivaji", "Prakash Raj", "Sanjay Dutt", "Bhama"],
+    accent: "#7c3aed",
+  },
 };
 
 function getMovie(slug) {
@@ -993,16 +1034,37 @@ function synthesizeMoviePage(slug) {
   return out;
 }
 
-function send(res, status, type, body) {
-  res.writeHead(status, {
+// Optimized send with content-type aware caching + gzip compression
+function send(req, res, status, type, body, cacheControl) {
+  const headers = {
     "content-type": type,
-    "cache-control": "no-store, max-age=0",
     "access-control-allow-origin": "*",
     "x-content-type-options": "nosniff",
     "x-frame-options": "SAMEORIGIN",
-  });
-  res.end(body);
+  };
+  if (cacheControl) headers["cache-control"] = cacheControl;
+  
+  const { body: compressedBody, encoding } = maybeCompress(req, body, type);
+  if (encoding) headers["content-encoding"] = encoding;
+  
+  res.writeHead(status, headers);
+  res.end(compressedBody);
 }
+
+// Cache control headers by content type
+const CACHE = {
+  html: "no-store, max-age=0",
+  rsc: "no-store, max-age=0",
+  js: "public, max-age=31536000, immutable",
+  css: "public, max-age=31536000, immutable",
+  woff2: "public, max-age=31536000, immutable",
+  png: "public, max-age=31536000, immutable",
+  webp: "public, max-age=31536000, immutable",
+  jpg: "public, max-age=31536000, immutable",
+  ico: "public, max-age=31536000, immutable",
+  glb: "public, max-age=31536000, immutable",
+  json: "public, max-age=3600, stale-while-revalidate=86400",
+};
 
 // ------------------------------------------------------------- Server
 const server = http.createServer((req, res) => {
@@ -1019,14 +1081,14 @@ const server = http.createServer((req, res) => {
       const pageHtml = synthesizeBookPage(slug, query);
       if (isRsc) {
         const rscPayload = extractRsc(pageHtml);
-        send(res, 200, "text/x-component; charset=utf-8", rscPayload);
+        send(req, res, 200, "text/x-component; charset=utf-8", rscPayload, CACHE.rsc);
       } else {
-        send(res, 200, MIME[".html"], pageHtml);
+        send(req, res, 200, MIME[".html"], pageHtml, CACHE.html);
       }
       return;
     } catch (err) {
       console.error("Book page synthesis error:", err);
-      send(res, 500, "text/plain", "Internal Booking Error: " + err.message);
+      send(req, res, 500, "text/plain", "Internal Booking Error: " + err.message);
       return;
     }
   }
@@ -1039,14 +1101,14 @@ const server = http.createServer((req, res) => {
       const pageHtml = synthesizeMoviePage(slug);
       if (isRsc) {
         const rscPayload = extractRsc(pageHtml);
-        send(res, 200, "text/x-component; charset=utf-8", rscPayload);
+        send(req, res, 200, "text/x-component; charset=utf-8", rscPayload, CACHE.rsc);
       } else {
-        send(res, 200, MIME[".html"], pageHtml);
+        send(req, res, 200, MIME[".html"], pageHtml, CACHE.html);
       }
       return;
     } catch (err) {
       console.error("Movie page synthesis error:", err);
-      send(res, 500, "text/plain", "Internal Movie Error: " + err.message);
+      send(req, res, 500, "text/plain", "Internal Movie Error: " + err.message);
       return;
     }
   }
@@ -1055,9 +1117,9 @@ const server = http.createServer((req, res) => {
   if (cleanPath === "/" || cleanPath === "") {
     const pageHtml = fs.readFileSync(path.join(PAGES, "index.html"), "utf8");
     if (isRsc) {
-      send(res, 200, "text/x-component; charset=utf-8", extractRsc(pageHtml));
+      send(req, res, 200, "text/x-component; charset=utf-8", extractRsc(pageHtml), CACHE.rsc);
     } else {
-      send(res, 200, MIME[".html"], pageHtml);
+      send(req, res, 200, MIME[".html"], pageHtml, CACHE.html);
     }
     return;
   }
@@ -1066,9 +1128,9 @@ const server = http.createServer((req, res) => {
   if (cleanPath === "/bookings") {
     const pageHtml = fs.readFileSync(path.join(PAGES, "bookings.html"), "utf8");
     if (isRsc) {
-      send(res, 200, "text/x-component; charset=utf-8", extractRsc(pageHtml));
+      send(req, res, 200, "text/x-component; charset=utf-8", extractRsc(pageHtml), CACHE.rsc);
     } else {
-      send(res, 200, MIME[".html"], pageHtml);
+      send(req, res, 200, MIME[".html"], pageHtml, CACHE.html);
     }
     return;
   }
@@ -1078,11 +1140,11 @@ const server = http.createServer((req, res) => {
     const loginRsc = path.join(FILES, "_html", "_login?_rsc=5CB68i4pnAekjehf");
     const loginHtml = path.join(FILES, "_html", "_login");
     if (isRsc && fs.existsSync(loginRsc)) {
-      send(res, 200, "text/x-component; charset=utf-8", fs.readFileSync(loginRsc));
+      send(req, res, 200, "text/x-component; charset=utf-8", fs.readFileSync(loginRsc), CACHE.rsc);
     } else if (fs.existsSync(loginHtml)) {
-      send(res, 200, MIME[".html"], fs.readFileSync(loginHtml));
+      send(req, res, 200, MIME[".html"], fs.readFileSync(loginHtml), CACHE.html);
     } else {
-      send(res, 200, "text/plain", "OK");
+      send(req, res, 200, "text/plain", "OK", CACHE.html);
     }
     return;
   }
@@ -1096,7 +1158,8 @@ const server = http.createServer((req, res) => {
     ];
     for (const p of paths) {
       if (fs.existsSync(p) && fs.statSync(p).isFile()) {
-        send(res, 200, MIME[path.extname(p)] || "model/gltf-binary", fs.readFileSync(p));
+        const ext = path.extname(p).toLowerCase();
+        send(req, res, 200, MIME[ext] || "model/gltf-binary", fs.readFileSync(p), CACHE[ext.slice(1)] || CACHE.glb);
         return;
       }
     }
@@ -1111,7 +1174,8 @@ const server = http.createServer((req, res) => {
     ];
     for (const p of paths) {
       if (fs.existsSync(p) && fs.statSync(p).isFile()) {
-        send(res, 200, MIME[path.extname(p)] || "image/jpeg", fs.readFileSync(p));
+        const ext = path.extname(p).toLowerCase();
+        send(req, res, 200, MIME[ext] || "image/jpeg", fs.readFileSync(p), CACHE[ext.slice(1)] || CACHE.jpg);
         return;
       }
     }
@@ -1126,13 +1190,14 @@ const server = http.createServer((req, res) => {
     ];
     for (const p of paths) {
       if (fs.existsSync(p) && fs.statSync(p).isFile()) {
-        send(res, 200, MIME[path.extname(p)] || "image/webp", fs.readFileSync(p));
+        const ext = path.extname(p).toLowerCase();
+        send(req, res, 200, MIME[ext] || "image/webp", fs.readFileSync(p), CACHE[ext.slice(1)] || CACHE.webp);
         return;
       }
     }
   }
 
-  // 9. Static Chunks & Mirrored Files
+  // 9. Static Chunks & Mirrored Files (/_next/, /favicon, etc.)
   const assetPaths = [
     path.join(FILES, cleanPath),
     path.join(PAGES, cleanPath),
@@ -1140,13 +1205,14 @@ const server = http.createServer((req, res) => {
   for (const p of assetPaths) {
     if (fs.existsSync(p) && fs.statSync(p).isFile()) {
       const ext = path.extname(p).toLowerCase();
-      send(res, 200, MIME[ext] || "application/octet-stream", fs.readFileSync(p));
+      const cacheKey = ext.slice(1);
+      send(req, res, 200, MIME[ext] || "application/octet-stream", fs.readFileSync(p), CACHE[cacheKey] || CACHE.js);
       return;
     }
   }
 
   // Fallback 404
-  send(res, 404, "text/plain", "Not Found");
+  send(req, res, 404, "text/plain", "Not Found");
 });
 
 server.on("error", (err) => {

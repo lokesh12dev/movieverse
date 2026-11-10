@@ -974,7 +974,23 @@ function synthesizeMoviePage(slug) {
   return out;
 }
 
+// Optimized send with content-type aware caching + gzip compression
 
+
+// Cache control headers by content type
+const CACHE = {
+  html: "no-store, max-age=0",
+  rsc: "no-store, max-age=0",
+  js: "public, max-age=31536000, immutable",
+  css: "public, max-age=31536000, immutable",
+  woff2: "public, max-age=31536000, immutable",
+  png: "public, max-age=31536000, immutable",
+  webp: "public, max-age=31536000, immutable",
+  jpg: "public, max-age=31536000, immutable",
+  ico: "public, max-age=31536000, immutable",
+  glb: "public, max-age=31536000, immutable",
+  json: "public, max-age=3600, stale-while-revalidate=86400",
+};
 
 
 

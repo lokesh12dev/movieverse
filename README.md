@@ -76,7 +76,7 @@ Whether browsing upcoming blockbusters on desktop or tapping into a 3D recliner 
 - **3D Assets & Textures:** Custom glTF 2.0 `seat.glb` binary model + Procedural Acoustic Velour, Wood Slat, and Hessian Weave PBR Textures
 - **Motion & Micro-Interactions:** GSAP · Framer Motion · Lenis Smooth Scroll · Tailwind CSS
 - **State Architecture:** Zustand reactive state containers
-- **Assets & Identity:** Bespoke MOVIEVERSE Cinema Identity & Vector Ticket Artwork by Lokesh
+- **Assets & Identity:** Bespoke MOVIEVERSE Cinema Identity & Vector Ticket Artwork by Lokesh · Gourmet concession photography from Wikimedia Commons (see `site/files/snacks/CREDITS.md`)
 
 ---
 

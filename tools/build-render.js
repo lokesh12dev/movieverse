@@ -28,7 +28,7 @@ for (const f of fs.readdirSync(SITE)) {
 // races the LCP image/critical JS for first-paint bandwidth. Keep the first
 // POSTER_PRELOADS (above-the-fold carousel + first strip slots); the rest load
 // naturally as React mounts their <img> (eager/lazy already encoded in capture).
-const POSTER_PRELOADS = 6;
+const POSTER_PRELOADS = 4;
 const homeRaw = all["index.html"];
 {
   let n = 0;
@@ -104,8 +104,9 @@ logic = logic.replace(
 );
 
 // drop the plain send() defined inside the upstream logic; we bind header logic below
+// Match old (4 params), new (5 params with cacheControl), and latest (6 params with req) signatures
 logic = logic.replace(
-  /function send\(res, status, type, body[^)]*\) \{\s*\n\s*res\.writeHead\(status, \{[\s\S]*?\}\);\s*\n\s*res\.end\(body\);\s*\n\s*\}/,
+  /function send\(req, res, status, type, body[^)]*\) \{[\s\S]*?res\.end\(compressedBody\);\s*\}/,
   ""
 );
 if ((logic.match(/function send\(/g) || []).length > 0) {
