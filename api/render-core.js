@@ -822,6 +822,20 @@ const MOVIES = {
     cast: ["Ajith Kumar", "Trisha", "Arjun Sarja", "Regina Cassandra"],
     accent: "#0ea5e9",
   },
+  "amaran": {
+    slug: "amaran",
+    title: "Amaran",
+    trailerId: "hylIXfZeB4c",
+    runtime: "2h 49m",
+    cert: "UA 13+",
+    rating: "8.4",
+    lang: "Tamil",
+    langs: ["Tamil", "Telugu", "Hindi", "Kannada", "Malayalam"],
+    genres: ["Action", "Drama", "Biography"],
+    director: "Rajkumar Periasamy",
+    cast: ["Sivakarthikeyan", "Sai Pallavi", "Bhuvan Arora", "Rahul Bose"],
+    accent: "#7c3aed",
+  },
 };
 
 function getMovie(slug) {
@@ -960,16 +974,26 @@ function synthesizeMoviePage(slug) {
     .join(movie.slug)
     .split("2h 58m")
     .join(movie.runtime || "2h 30m")
-    .split("9.4")
-    .join(movie.rating || "9.0")
+    .split("★ <!-- -->9.4</span>")
+    .join(`★ <!-- -->${movie.rating || "9.0"}</span>`)
+    .split("Ranbir Kapoor, Yash")
+    .join(movie.cast ? movie.cast.join(", ") : "Lead Cast")
     .split("Nitesh Tiwari")
     .join(movie.director || "Lokesh")
-    .split("Ranbir Kapoor, Sai Pallavi, Yash")
-    .join(movie.cast ? movie.cast.join(", ") : "Lead Cast")
-    .split("Mythology")
-    .join(movie.genres ? movie.genres[0] : "Action")
+    .split("Mythology · Epic · Action")
+    .join(movie.genres ? movie.genres.join(" · ") : "Action")
+    .split('backdrop-blur">UA</span>')
+    .join(`backdrop-blur">${movie.cert || "UA"}</span>`)
+    .split("Hindi · Tamil")
+    .join("__LANGS_CHIP__")
     .split("Hindi")
-    .join(movie.lang || "Tamil");
+    .join(movie.lang || "Tamil")
+    .split("__LANGS_CHIP__")
+    .join(
+      movie.langs
+        ? movie.langs.slice(0, 3).join(" · ")
+        : movie.lang || "Hindi · Tamil"
+    );
 
   return out;
 }
