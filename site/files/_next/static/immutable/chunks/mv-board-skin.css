@@ -1,0 +1,915 @@
+/* ============================================================
+   MOVIEVERSE — Board Skin ("Cinematic premium")
+   Progressive enhancement layer for the /book showtimes board.
+   Pure paint + additive data-attributes set by mv-board-skin.js.
+   React markup is never structurally altered.
+   ============================================================ */
+
+@property --mv-beam {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+#shows {
+  --mv-gold: #f5c04b;
+  --mv-gold-hi: #ffe3a1;
+  --mv-ember: #ff9d3c;
+  --mv-ember-deep: #c2540a;
+  --mv-violet: #8b7bff;
+  --mv-cyan: #22d3ee;
+  --mv-mint: #34d399;
+  --mv-amber: #fbbf24;
+  --mv-rose: #fb7185;
+  --mv-rose-deep: #e11d48;
+  --mv-ink: #08080d;
+  --mv-ink-card: #0d0d15;
+}
+
+/* ---------- Focus rings (whole board) ---------- */
+#shows a:focus-visible,
+#shows button:focus-visible,
+#shows select:focus-visible {
+  outline: 2px solid rgb(245 196 75 / 0.75) !important;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ============================================================
+   THEATRE CARDS — 3-layer surface
+   ============================================================ */
+#shows article[data-mv-card] {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(245 196 75 / 0.07), transparent 55%),
+    radial-gradient(90% 75% at 100% 100%, rgb(139 123 255 / 0.05), transparent 62%),
+    linear-gradient(165deg, #14141f 0%, #0d0d15 46%, #0a0a10 100%) !important;
+  border: 1px solid rgb(255 255 255 / 0.09) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 12px 44px -20px rgb(0 0 0 / 0.85) !important;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+#shows article[data-mv-card]:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgb(245 196 75 / 0.3) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 0 0 1px rgb(245 196 75 / 0.08),
+    0 22px 60px -22px rgb(0 0 0 / 0.9),
+    0 10px 44px -14px rgb(245 158 11 / 0.14) !important;
+}
+
+/* mouse-tracked spotlight → brand-tinted ember light
+   (opacity stays React-owned: opacity-0 → group-hover:opacity-100;
+    we only repaint the light and open it slightly faster) */
+#shows article[data-mv-card] > span[style*="--mx"],
+#shows article[data-mv-card] a[class*="group"] > span[style*="--mx"],
+#shows .snap-x a[class*="group"] > span[style*="--mx"] {
+  background: radial-gradient(
+    var(--mv-spot-r, 460px) circle at var(--mx, 30%) var(--my, 0%),
+    rgb(245 196 75 / 0.12),
+    rgb(255 158 60 / 0.05) 46%,
+    transparent 72%
+  ) !important;
+  transition: opacity 0.3s ease !important;
+}
+#shows article[data-mv-card]:hover > span[style*="--mx"],
+#shows article[data-mv-card] a[class*="group"]:hover > span[style*="--mx"],
+#shows .snap-x a[class*="group"]:hover > span[style*="--mx"] {
+  opacity: 1 !important;
+}
+
+/* sheen sweep on hover */
+#shows article[data-mv-card]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.04) 44%,
+    rgb(255 228 178 / 0.09) 50%,
+    transparent 60%
+  );
+  transform: translateX(-130%);
+  transition: transform 1.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+#shows article[data-mv-card]:hover::before {
+  transform: translateX(130%);
+}
+
+/* conic border-beam on hover (1px ring) */
+#shows article[data-mv-card]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 24px;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--mv-beam),
+    transparent 0deg,
+    transparent 292deg,
+    rgb(255 227 161 / 0.9) 322deg,
+    rgb(255 158 60 / 0.95) 352deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+#shows article[data-mv-card]:hover::after {
+  opacity: 1;
+  animation: mv-beam-spin 3.4s linear infinite;
+}
+@keyframes mv-beam-spin {
+  to { --mv-beam: 360deg; }
+}
+
+/* top hairline → ember strip */
+#shows article[data-mv-card] > span:first-child {
+  height: 2px !important;
+  background: linear-gradient(
+    90deg,
+    var(--mv-gold) 0%,
+    var(--mv-ember) 34%,
+    rgb(255 158 60 / 0.35) 58%,
+    transparent 82%
+  ) !important;
+}
+#shows article[data-mv-card]:hover > span:first-child {
+  background: linear-gradient(
+    90deg,
+    var(--mv-gold-hi) 0%,
+    var(--mv-ember) 32%,
+    transparent 64%
+  ) !important;
+  filter: drop-shadow(0 0 7px rgb(245 196 75 / 0.75));
+}
+
+/* brand monogram tile */
+#shows article[data-mv-card] header > div:first-child {
+  background: linear-gradient(
+    140deg,
+    #ffe9b8 0%,
+    #f5c04b 32%,
+    #e08a1e 76%,
+    #8a4a08 100%
+  ) !important;
+  border: 1px solid rgb(255 220 150 / 0.5);
+  box-shadow:
+    0 8px 22px rgb(224 138 30 / 0.32),
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    inset 0 -2px 6px rgb(120 60 0 / 0.35) !important;
+  color: #231204 !important;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.28);
+}
+
+/* theatre brand eyebrow */
+#shows article[data-mv-card] header > div:nth-child(2) > p:first-of-type {
+  text-shadow: 0 0 14px rgb(245 196 75 / 0.4);
+  letter-spacing: 0.28em;
+}
+
+/* favourite heart — magnetic pop */
+#shows article[data-mv-card] button[aria-pressed] {
+  backdrop-filter: blur(4px);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s ease;
+}
+#shows article[data-mv-card] button[aria-pressed]:hover { transform: scale(1.1); }
+#shows article[data-mv-card] button[aria-pressed]:active { transform: scale(0.82); }
+#shows article[data-mv-card] button[aria-pressed="true"] {
+  animation: mv-heart-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes mv-heart-pop {
+  0%   { transform: scale(0.55); }
+  60%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* amenity chips */
+#shows article[data-mv-card] > div:nth-of-type(1) span {
+  border-color: rgb(255 255 255 / 0.1) !important;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02)) !important;
+  color: rgb(255 255 255 / 0.62) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+#shows article[data-mv-card] > div:nth-of-type(1) span svg {
+  color: var(--mv-gold);
+  opacity: 0.9;
+}
+
+/* ============================================================
+   DAY BAND — hour ticks · dayparts · NOW pin
+   ============================================================ */
+#shows [data-mv-band] [data-mv-track] {
+  height: 14px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.02)) !important;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.09),
+    inset 0 2px 4px rgb(0 0 0 / 0.55);
+}
+
+/* 2-hour tick ruler (7:00 → 3:00 = 10 intervals, mirrors Timeline axis) */
+#shows [data-mv-band] [data-mv-track]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.14) 0 1px,
+    transparent 1px calc(100% / 10)
+  );
+  pointer-events: none;
+}
+
+/* daypart underlay (injected): dawn → noon → ember peak → midnight */
+#shows [data-mv-band] [data-mv-underlay] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgb(103 232 249 / 0.16) 0%,    /* 7am dawn       */
+    rgb(250 204 21 / 0.12) 14%,    /* late morning   */
+    rgb(250 204 21 / 0.18) 25%,    /* noon           */
+    rgb(251 191 36 / 0.2) 40%,     /* 3pm            */
+    rgb(249 115 22 / 0.27) 55%,    /* 6pm peak       */
+    rgb(244 63 94 / 0.22) 72%,     /* ~9:20pm        */
+    rgb(139 92 246 / 0.2) 85%,     /* midnight       */
+    rgb(139 92 246 / 0.12) 100%    /* 3am            */
+  );
+  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 34% 66%, transparent 100%);
+          mask: linear-gradient(180deg, transparent 0%, #000 34% 66%, transparent 100%);
+  pointer-events: none;
+}
+
+/* elapsed region of today → subdued hatch */
+#shows [data-mv-band] [data-mv-elapsed] {
+  background:
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.06) 0 3px, transparent 3px 7px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.04)) !important;
+}
+
+/* showtime dots */
+#shows [data-mv-band] [data-mv-dot] {
+  width: 9px !important;
+  height: 9px !important;
+  border: none !important;
+  box-shadow:
+    0 0 0 2.5px var(--mv-ink-card),
+    0 1px 6px rgb(0 0 0 / 0.7) !important;
+  transition: box-shadow 0.25s ease;
+  cursor: pointer;
+}
+#shows [data-mv-band] [data-mv-dot]::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+#shows [data-mv-band] [data-mv-dot][data-occ="available"]:hover {
+  box-shadow: 0 0 0 2.5px var(--mv-ink-card), 0 0 12px 2px rgb(52 211 153 / 0.6) !important;
+}
+#shows [data-mv-band] [data-mv-dot][data-occ="filling"] {
+  animation: mv-dot-pulse 2.2s ease-in-out infinite;
+}
+#shows [data-mv-band] [data-mv-dot][data-occ="filling"]:hover {
+  box-shadow: 0 0 0 2.5px var(--mv-ink-card), 0 0 12px 2px rgb(251 191 36 / 0.65) !important;
+}
+#shows [data-mv-band] [data-mv-dot][data-occ="almost-full"]:hover {
+  box-shadow: 0 0 0 2.5px var(--mv-ink-card), 0 0 12px 2px rgb(251 113 133 / 0.6) !important;
+}
+@keyframes mv-dot-pulse {
+  50% { box-shadow: 0 0 0 2.5px var(--mv-ink-card), 0 0 10px 2px rgb(251 191 36 / 0.55) !important; }
+}
+
+/* NOW pin (injected) */
+#shows [data-mv-band] [data-mv-now] {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 2px;
+  margin-left: -1px;
+  z-index: 3;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--mv-gold-hi), var(--mv-ember));
+  box-shadow:
+    0 0 10px rgb(245 196 75 / 0.7),
+    0 0 24px rgb(255 158 60 / 0.35);
+  pointer-events: none;
+}
+#shows [data-mv-band] [data-mv-now]::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mv-gold);
+  box-shadow: 0 0 9px var(--mv-gold);
+  animation: mv-now-pulse 2.4s ease-in-out infinite;
+}
+#shows [data-mv-band] [data-mv-now]::after {
+  content: "NOW";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 2px 5px 1px;
+  border-radius: 5px;
+  white-space: nowrap;
+  color: #201703;
+  background: linear-gradient(180deg, var(--mv-gold-hi), var(--mv-gold));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.55);
+}
+@keyframes mv-now-pulse {
+  50% { box-shadow: 0 0 14px var(--mv-gold), 0 0 4px rgb(255 255 255 / 0.8); }
+}
+
+/* band ruler labels → true positions (JS sets left %) */
+#shows [data-mv-band] [data-mv-bandlabels] {
+  display: block !important;
+  position: relative;
+  height: 12px;
+  margin-top: 5px;
+}
+#shows [data-mv-band] [data-mv-bandlabels] > span {
+  position: absolute !important;
+  color: rgb(255 255 255 / 0.4) !important;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   SHOWTIME PILLS
+   ============================================================ */
+#shows article[data-mv-card] a.stub {
+  position: relative;
+  border-radius: 14px !important;
+  border: 1px solid rgb(255 255 255 / 0.09) !important;
+  background: linear-gradient(
+    165deg,
+    rgb(255 255 255 / 0.055),
+    rgb(255 255 255 / 0.015) 55%,
+    rgb(245 196 75 / 0.045)
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 2px 10px -4px rgb(0 0 0 / 0.55) !important;
+  font-variant-numeric: tabular-nums slashed-zero;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.28s ease,
+    background 0.28s ease,
+    box-shadow 0.28s ease !important;
+  will-change: transform;
+}
+#shows article[data-mv-card] a.stub:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgb(245 196 75 / 0.4) !important;
+  background: linear-gradient(
+    165deg,
+    rgb(255 255 255 / 0.075),
+    rgb(255 255 255 / 0.02) 55%,
+    rgb(245 196 75 / 0.075)
+  ) !important;
+  box-shadow:
+    0 12px 30px -10px rgb(0 0 0 / 0.6),
+    0 4px 26px -6px rgb(245 158 11 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
+}
+#shows article[data-mv-card] a.stub:active {
+  transform: translateY(-1px) scale(0.985) !important;
+}
+
+/* occupancy accent rail (per-occ glow handoff) */
+#shows article[data-mv-card] a.stub {
+  --mv-occ: var(--mv-mint);
+}
+#shows article[data-mv-card] a.stub[data-occ="filling"] { --mv-occ: var(--mv-amber); }
+#shows article[data-mv-card] a.stub[data-occ="almost-full"] { --mv-occ: var(--mv-rose); }
+#shows article[data-mv-card] a.stub[data-occ="past"] { --mv-occ: rgb(255 255 255 / 0.28); }
+#shows article[data-mv-card] a.stub::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--mv-occ);
+  opacity: 0.85;
+  box-shadow: 0 0 10px 0 var(--mv-occ);
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+#shows article[data-mv-card] a.stub:hover::before { opacity: 1; }
+
+/* almost-full urgency — rose hover state */
+#shows article[data-mv-card] a.stub[data-occ="almost-full"]:hover {
+  border-color: rgb(251 113 133 / 0.55) !important;
+  box-shadow:
+    0 12px 30px -10px rgb(0 0 0 / 0.6),
+    0 4px 24px -6px rgb(225 29 72 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
+}
+
+/* "next show" elevated stub (React marks it with inner ring shadow) */
+#shows article[data-mv-card] a.stub[style*="inset 0 0 0 1px"] {
+  border-color: rgb(255 238 210 / 0.55) !important;
+  background: linear-gradient(
+    165deg,
+    rgb(255 255 255 / 0.1),
+    rgb(255 255 255 / 0.03) 55%,
+    rgb(245 196 75 / 0.11)
+  ) !important;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 238 210 / 0.22),
+    0 8px 26px -10px rgb(245 158 11 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.09) !important;
+}
+
+/* time numerals */
+#shows article[data-mv-card] a.stub > span:first-child {
+  font-size: 17px !important;
+  letter-spacing: 0.01em;
+}
+#shows a.stub[data-occ="available"] > span:first-child { color: #f8fafc; }
+#shows a.stub[data-occ="filling"] > span:first-child {
+  color: var(--mv-gold-hi);
+  text-shadow: 0 0 14px rgb(245 196 75 / 0.35);
+}
+#shows a.stub[data-occ="almost-full"] > span:first-child { color: #fecdd3; }
+
+/* format chip — per-format signature gradients */
+#shows a.stub [data-mv-fmt] {
+  border-radius: 6px !important;
+  padding: 2px 7px !important;
+  font-size: 8.5px !important;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+#shows a.stub [data-mv-fmt="IMAX"] {
+  background: linear-gradient(135deg, #ffe3a1, #f5c04b 45%, #d9861c) !important;
+  color: #231204 !important;
+  box-shadow: 0 1px 7px rgb(245 158 11 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.6) !important;
+}
+#shows a.stub [data-mv-fmt="Atmos"] {
+  background: linear-gradient(135deg, rgb(34 211 238 / 0.92), #0891b2) !important;
+  color: #062b33 !important;
+}
+#shows a.stub [data-mv-fmt="4DX"] {
+  background: linear-gradient(135deg, #ff9d3c, #dc2626) !important;
+  color: #fff7ed !important;
+  text-shadow: 0 1px 1px rgb(120 20 0 / 0.55);
+}
+#shows a.stub [data-mv-fmt="3D"] {
+  background: linear-gradient(135deg, rgb(167 139 250 / 0.9), #7c3aed) !important;
+  color: #ffffff !important;
+}
+#shows a.stub [data-mv-fmt="2D"] {
+  background: rgb(245 196 75 / 0.12) !important;
+  color: rgb(245 196 75 / 0.95) !important;
+  box-shadow: inset 0 0 0 1px rgb(245 196 75 / 0.28);
+}
+
+/* occupancy fill bar (inline gradient overridden via custom props) */
+#shows a.stub[data-occ] { --mv-grad: linear-gradient(90deg, #34d399, #22d3ee); }
+#shows a.stub[data-occ="filling"] { --mv-grad: linear-gradient(90deg, #fbbf24, #f97316); }
+#shows a.stub[data-occ="almost-full"] { --mv-grad: linear-gradient(90deg, #fb7185, #e11d48); }
+#shows a.stub[data-occ] > span:nth-of-type(3) {
+  height: 4px !important;
+  border-radius: 999px !important;
+  background: rgb(255 255 255 / 0.07) !important;
+}
+#shows a.stub[data-occ] > span:nth-of-type(3) > span {
+  background: var(--mv-grad) !important;
+  box-shadow: 0 0 6px rgb(255 255 255 / 0.12);
+}
+
+/* "Next ·" badge */
+#shows a.stub b {
+  color: var(--mv-gold) !important;
+  text-shadow: 0 0 10px rgb(245 196 75 / 0.6);
+}
+
+/* empty-state */
+#shows article[data-mv-card] > p[class*="border-dashed"] {
+  border-color: rgb(245 196 75 / 0.25) !important;
+  background: rgb(245 196 75 / 0.05) !important;
+  color: rgb(255 228 178 / 0.78) !important;
+  border-radius: 14px;
+}
+
+/* ============================================================
+   FEATURED SPOTLIGHT STRIP (Next show / Closest / Best)
+   ============================================================ */
+#shows .snap-x > div > a[class*="group"] {
+  background: linear-gradient(150deg, #171724, #0d0d15 62%) !important;
+  border: 1px solid rgb(255 255 255 / 0.13) !important;
+  border-radius: 22px !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 12px 36px -18px rgb(0 0 0 / 0.85) !important;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+#shows .snap-x > div > a[class*="group"]:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgb(245 196 75 / 0.35) !important;
+  box-shadow:
+    0 16px 42px -18px rgb(0 0 0 / 0.9),
+    0 6px 30px -8px rgb(245 158 11 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.07) !important;
+}
+#shows .snap-x a[class*="group"] > span[style*="--mx"] {
+  --mv-spot-r: 340px;
+  transition: opacity 0.35s ease !important;
+}
+#shows .snap-x a[class*="group"]:hover > span[style*="--mx"] {
+  opacity: 1 !important;
+}
+/* showtime monogram tile */
+#shows .snap-x a[class*="group"] > div:first-of-type {
+  background:
+    radial-gradient(120% 120% at 30% 20%, rgb(255 255 255 / 0.14), transparent 48%),
+    linear-gradient(150deg, #1a1a26, #0c0c12) !important;
+  border-color: rgb(245 196 75 / 0.4) !important;
+  box-shadow:
+    inset 0 0 22px rgb(245 196 75 / 0.07),
+    0 4px 18px -6px rgb(0 0 0 / 0.85) !important;
+}
+/* eyebrow */
+#shows .snap-x a[class*="group"] > div:nth-of-type(2) > p:first-child {
+  color: rgb(245 196 75 / 0.85) !important;
+  text-shadow: 0 0 12px rgb(245 196 75 / 0.3);
+}
+/* arrow */
+#shows .snap-x a[class*="group"] > span:last-child {
+  color: rgb(245 196 75 / 0.55) !important;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+#shows .snap-x a[class*="group"]:hover > span:last-child {
+  color: var(--mv-gold) !important;
+  text-shadow: 0 0 12px rgb(245 196 75 / 0.5);
+}
+
+/* ============================================================
+   BOARD TOOLBAR — segmented golden control
+   ============================================================ */
+#shows [data-mv-toggle] {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02)) !important;
+  border: 1px solid rgb(255 255 255 / 0.13) !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  gap: 4px !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 3px 14px -6px rgb(0 0 0 / 0.7) !important;
+  backdrop-filter: blur(8px);
+}
+#shows [data-mv-toggle] button { position: relative; z-index: 1; }
+#shows [data-mv-toggle] button > span.absolute.inset-0 {
+  background: linear-gradient(135deg, #ffe3a1, #f5c04b 52%, #d9861c) !important;
+  border-radius: 999px !important;
+  box-shadow:
+    0 2px 14px rgb(245 158 11 / 0.42),
+    inset 0 1px 0 rgb(255 255 255 / 0.6) !important;
+}
+#shows [data-mv-toggle] button[class*="text-black"] {
+  color: #231204 !important;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+/* shared golden layout-pill (toggle / cities / dates all use framer layoutId) */
+#shows [data-mv-toggle] button > span.absolute.inset-0,
+#shows [data-mv-cities] button > span.absolute.inset-0,
+#shows [data-mv-dates] button > span.absolute.inset-0 {
+  background: linear-gradient(150deg, #ffe9b8, #f5c04b 55%, #d9861c) !important;
+  box-shadow:
+    0 4px 18px rgb(245 158 11 / 0.42),
+    inset 0 1px 0 rgb(255 255 255 / 0.55) !important;
+}
+#shows [data-mv-cities] button[class*="text-black"],
+#shows [data-mv-dates] button[class*="text-black"] {
+  color: #231204 !important;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.4);
+}
+#shows [data-mv-dates] button[class*="text-black"] {
+  border-color: transparent !important;
+}
+
+/* date chips — glass day cards */
+#shows [data-mv-dates] button {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.015)) !important;
+  border-color: rgb(255 255 255 / 0.1) !important;
+}
+#shows [data-mv-dates] button[class*="text-black"] > span {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* sort chips */
+#shows [data-mv-sort] button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+#shows [data-mv-sort] button[class*="bg-white/10"] {
+  background: rgb(245 196 75 / 0.14) !important;
+  color: var(--mv-gold-hi) !important;
+  border-color: rgb(245 196 75 / 0.35);
+  box-shadow: 0 0 14px -4px rgb(245 196 75 / 0.4);
+}
+#shows [data-mv-sort] button:not([class*="bg-white/10"]):hover {
+  color: rgb(255 255 255 / 0.9);
+}
+
+/* ============================================================
+   SECTION CONTROLS — dates · cities · filters · legend
+   ============================================================ */
+#shows [data-mv-dates] button {
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease !important;
+  font-variant-numeric: tabular-nums;
+}
+#shows [data-mv-dates] button:hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 255 255 / 0.28) !important;
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
+}
+#shows [data-mv-cities] {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02)) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    0 3px 16px -8px rgb(0 0 0 / 0.75) !important;
+  backdrop-filter: blur(8px);
+}
+#shows [data-mv-filters] button,
+#shows [data-mv-filters] select {
+  border-radius: 999px !important;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+#shows [data-mv-filters] button[class*="bg-white"][class*="text-black"] {
+  background: linear-gradient(135deg, #ffe3a1, #f5c04b) !important;
+  border-color: transparent !important;
+  color: #231204 !important;
+  font-weight: 800;
+  box-shadow: 0 2px 14px rgb(245 158 11 / 0.35) !important;
+}
+#shows [data-mv-filters] select {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.02)) !important;
+  border-color: rgb(255 255 255 / 0.12) !important;
+}
+#shows [data-mv-legend] {
+  background: rgb(255 255 255 / 0.03) !important;
+  border: 1px solid rgb(255 255 255 / 0.09) !important;
+  border-radius: 999px !important;
+  padding: 5px 14px !important;
+  backdrop-filter: blur(6px);
+}
+#shows [data-mv-legend] i {
+  box-shadow: 0 0 9px currentColor;
+}
+
+/* ============================================================
+   TIMELINE VIEW
+   ============================================================ */
+#shows [data-mv-tl] {
+  border: 1px solid rgb(255 255 255 / 0.11) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(120% 70% at 0% 0%, rgb(245 196 75 / 0.05), transparent 55%),
+    linear-gradient(180deg, #13131d, #0c0c13 55%, #0a0a10) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 18px 52px -24px rgb(0 0 0 / 0.85) !important;
+}
+
+/* header */
+#shows [data-mv-tlhead] {
+  border-color: rgb(255 255 255 / 0.08) !important;
+}
+#shows [data-mv-tlhead] > div:last-child span {
+  color: rgb(255 255 255 / 0.5) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+#shows [data-mv-tlheadname] {
+  color: rgb(245 196 75 / 0.8) !important;
+  letter-spacing: 0.26em;
+}
+
+/* rows + gridlines */
+#shows [data-mv-tlrow] {
+  transition: background 0.25s ease;
+}
+#shows [data-mv-tlrow]:hover {
+  background: rgb(255 255 255 / 0.028) !important;
+}
+#shows [data-mv-tlrow] > div:last-child > span {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(245 196 75 / 0.1) 38% 62%,
+    transparent
+  ) !important;
+}
+
+/* show blocks */
+#shows [data-mv-tlblock] {
+  border-radius: 10px !important;
+  backdrop-filter: blur(2px);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    filter 0.22s ease !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 3px 10px -4px rgb(0 0 0 / 0.55);
+}
+#shows [data-mv-tlblock]:not([data-mv-past]):hover {
+  transform: scale(1.05) !important;
+  z-index: 20;
+  filter: brightness(1.14);
+  box-shadow:
+    0 10px 24px -6px rgb(0 0 0 / 0.75),
+    0 0 0 1px rgb(245 196 75 / 0.35),
+    0 0 22px -4px rgb(245 158 11 / 0.25),
+    inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+  cursor: pointer;
+}
+#shows [data-mv-tlblock][data-mv-past] {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgb(255 255 255 / 0.035) 0 4px,
+    transparent 4px 8px
+  ) !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#shows [data-mv-tlblock] > span:first-child {
+  opacity: 0.32;
+}
+
+/* NOW needle → golden */
+#shows [data-mv-nowband] > div {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--mv-gold) 10% 90%,
+    transparent
+  ) !important;
+  width: 2px !important;
+  margin-left: -1px;
+  box-shadow:
+    0 0 14px rgb(245 196 75 / 0.8),
+    0 0 34px rgb(255 158 60 / 0.4) !important;
+}
+#shows [data-mv-nowband] span {
+  background: linear-gradient(180deg, var(--mv-gold-hi), var(--mv-gold)) !important;
+  color: #201703 !important;
+  border-radius: 4px 4px 6px 6px;
+  letter-spacing: 0.14em;
+  box-shadow: 0 2px 10px rgb(245 196 75 / 0.55) !important;
+}
+
+/* ============================================================
+   TOOLTIP (JS-owned singleton, lives outside React root)
+   ============================================================ */
+.mv-tip {
+  position: fixed;
+  z-index: 95;
+  pointer-events: none;
+  min-width: 168px;
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: linear-gradient(165deg, rgb(24 24 35 / 0.97), rgb(13 13 20 / 0.98));
+  border: 1px solid rgb(245 196 75 / 0.35);
+  box-shadow:
+    0 14px 36px -10px rgb(0 0 0 / 0.9),
+    inset 0 0 0 1px rgb(255 255 255 / 0.04),
+    0 8px 28px -10px rgb(245 158 11 / 0.3);
+  color: #fff;
+  font: 600 12px/1.45 ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+.mv-tip.on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.mv-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mv-tip-time {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.mv-tip-fmt {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgb(245 196 75 / 0.14);
+  color: rgb(245 196 75 / 0.95);
+  box-shadow: inset 0 0 0 1px rgb(245 196 75 / 0.3);
+}
+.mv-tip-fmt[data-f="IMAX"],
+.mv-tip-fmt[data-f="4DX"],
+.mv-tip-fmt[data-f="ATMOS"] {
+  background: linear-gradient(135deg, #ffe3a1, #f5c04b 45%, #d9861c);
+  color: #231204;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+.mv-tip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid rgb(255 255 255 / 0.07);
+  color: rgb(255 255 255 / 0.65);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.mv-tip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.mv-tip-occ-available { color: #34d399; }
+.mv-tip-occ-filling   { color: #fbbf24; }
+.mv-tip-occ-almost-full { color: #fb7185; }
+.mv-tip-occ-past      { color: rgb(255 255 255 / 0.5); }
+
+/* ============================================================
+   GATES — hover devices & reduced motion
+   ============================================================ */
+@media (hover: none) {
+  #shows article[data-mv-card],
+  #shows article[data-mv-card] a.stub,
+  #shows .snap-x > div > a[class*="group"] {
+    transform: none !important;
+  }
+  #shows [data-mv-band] [data-mv-dot]::after {
+    inset: -12px; /* larger touch target */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #shows article[data-mv-card]::before,
+  #shows article[data-mv-card]::after,
+  #shows [data-mv-band] [data-mv-dot],
+  #shows [data-mv-band] [data-mv-now]::before,
+  #shows [data-mv-band] [data-mv-dot][data-occ="filling"] {
+    animation: none !important;
+    transition: none !important;
+  }
+  #shows article[data-mv-card]:hover::before { transform: none; }
+  .mv-tip { transition: opacity 0.15s ease; transform: none; }
+}
